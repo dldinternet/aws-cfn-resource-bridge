@@ -126,7 +126,7 @@ class QueuePollTask(BaseTask):
                                                     max_number_of_messages=max_events)
 
         # Swallow up any errors/issues, logging them out
-        if http_response.status_code != 200 or not "Messages" in response_data:
+        if http_response.status_code != 200:
             log.error(u"Failed to retrieve messages from queue %s with status_code %s: %s" %
                       (self._queue_url, http_response.status_code, response_data))
             return []

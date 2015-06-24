@@ -16,8 +16,8 @@
 from threading import Thread
 from Queue import Queue
 import logging
-import botocore.session
-from aws.cfn.bridge.resources import Message, ResourceEvent, CustomResource
+from .vendored.botocore import session as bc_session
+from .resources import Message, ResourceEvent, CustomResource
 
 log = logging.getLogger("cfn.resourcebridge")
 
@@ -117,7 +117,7 @@ class QueuePollTask(BaseTask):
 
     def retrieve_events(self, max_events=1):
         """Attempts to retrieve events from the provided SQS queue"""
-        session = botocore.session.get_session()
+        session = bc_session.get_session()
         sqs = session.get_service("sqs")
         receive = sqs.get_operation("ReceiveMessage")
         http_response, response_data = receive.call(sqs.get_endpoint(self._region),
@@ -126,7 +126,7 @@ class QueuePollTask(BaseTask):
                                                     max_number_of_messages=max_events)
 
         # Swallow up any errors/issues, logging them out
-        if http_response.status_code != 200 or not "Messages" in response_data:
+        if http_response.status_code != 200:
             log.error(u"Failed to retrieve messages from queue %s with status_code %s: %s" %
                       (self._queue_url, http_response.status_code, response_data))
             return []
